@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-http
+  labels:
+    app: hello-world-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-world-http
+  template:
+    metadata:
+      labels:
+        app: hello-world-http
+    spec:
+      containers:
+      - name: hello-world-http
+        image: manicminer/hello-world-http:latest
+        ports:
+        - containerPort: 5000
+
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: hello-world-http
+  annotations:
+    certmanager.k8s.io/issuer: ${ISSUER}
+    kubernetes.io/ingress.class: ${INGRESS_CLASS}
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: ${HOST}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: hello-world-http
+          servicePort: ${PORT}
+  tls:
+  - hosts:
+    - ${HOST}
+    secretName: hello-world-http-cert
